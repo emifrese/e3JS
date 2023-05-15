@@ -54,44 +54,69 @@ const pizzaButton = document.querySelector("#pizzaButton");
 
 const pizzaContainer = document.querySelector("#pizzaContainer");
 
+const inputHandler = (e) => {
+  if (!e.target.value.trim()) {
+    e.target.classList.add("empty");
+  } else {
+    e.target.classList.remove("empty");
+  }
+};
+
+const alertFeedback = (alert) => {
+  return `<p class='${alert.class}'>${alert.message}</p>`;
+};
+
+const manageLocalStorage = (item) => {
+  if (item) {
+    localStorage.setItem("pizza", JSON.stringify(item));
+  } else {
+    localStorage.removeItem("pizza");
+  }
+};
+
+const pizzaDisplay = ({ nombre, precio, imagen }) => {
+  return `<h2>${nombre.toUpperCase()}</h2>
+  <figure>
+    <figcaption>${precio}</figcaption>
+    <img src=${imagen} alt="">
+  </figure>`;
+};
+
 const submitHandler = (e) => {
   e.preventDefault();
 
   const pizzaNumber = parseInt(pizzaInput.value.trim());
 
   if (!pizzaNumber) {
-    return (pizzaContainer.innerHTML =
-      "<p>Para realizar su orden, ingrese un número</p>");
+    manageLocalStorage()
+    return (pizzaContainer.innerHTML = alertFeedback({
+      message: "Para realizar su orden, ingrese un número",
+      class: "noInput",
+    }));
   }
 
   const pizzaSelected = pizzas.find((pizza) => pizza.id === pizzaNumber);
 
   if (!pizzaSelected) {
-    return (pizzaContainer.innerHTML =
-      "<p>El número ingresado no corresponde con ningún producto</p>");
+    manageLocalStorage()
+    return (pizzaContainer.innerHTML = alertFeedback({
+      message: "El número ingresado no corresponde con ningún producto",
+      class: "notFound",
+    }));
   }
 
-  localStorage.setItem("pizza", JSON.stringify(pizzaSelected));
+  manageLocalStorage(pizzaSelected);
 
-  return (pizzaContainer.innerHTML = `
-            <h2>${pizzaSelected.nombre.toUpperCase()}</h2>
-            <figure>
-              <figcaption>${pizzaSelected.precio}</figcaption>
-              <img src=${pizzaSelected.imagen} alt="">
-            </figure>
-          `);
+  return (pizzaContainer.innerHTML = pizzaDisplay(pizzaSelected));
 };
 
 const init = () => {
   pizzaForm.addEventListener("submit", submitHandler);
+  pizzaInput.addEventListener("input", inputHandler);
   if (savedPizza) {
-    pizzaContainer.innerHTML = `
-  <h2>${savedPizza.nombre.toUpperCase()}</h2>
-  <figure>
-    <figcaption>${savedPizza.precio}</figcaption>
-    <img src=${savedPizza.imagen} alt="">
-  </figure>
-`;
+    pizzaContainer.innerHTML = pizzaDisplay(savedPizza);
+    pizzaInput.value = savedPizza.id;
+    pizzaInput.classList.remove("empty");
   }
 };
 
